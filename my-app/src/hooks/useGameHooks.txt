@@ -1,0 +1,45 @@
+import { useEffect, useState } from "react";
+import apiClient from "../services/api-clients";
+
+export interface platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface Game {
+  id: number;
+  name: string;
+  background_image: string;
+  parent_platforms: { platform: platform }[];
+  metacritic: number;
+}
+
+interface FetchGamesResponse {
+  count: number;
+  results: Game[];
+}
+
+const useGame = () => {
+  const [games, setGames] = useState<Game[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true); // Move this inside the useEffect to avoid infinite renders
+    apiClient
+      .get<FetchGamesResponse>("/games")
+      .then((res) => {
+        setGames(res.data.results);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []); // Ensure no unnecessary dependency is added here
+
+  return { games, error, isLoading };
+};
+
+export default useGame;
